@@ -1,0 +1,31 @@
+gateway:
+  port: 4000
+
+common:
+  eventStore:
+    type: "event-store"
+    tcpEndpoint:
+      host: "localhost"
+      port: 1113
+    credentials:
+      username: "admin"
+      password: "changeit"
+
+
+services:
+  user:
+    endpoint: ""
+    port: 4001
+    database:
+      type: 'mysql'
+      prefix: "svc-user_"
+      url: "mysql://root:%25%26Emi0l0123%2A%26%25@localhost:3306/cqrs-es"
+      logging: true
+  account:
+    endpoint: ""
+    port: 4001
+    database:
+      type: 'mysql'
+      prefix: "svc-account_"
+      url: "mysql://root:%25%26Emi0l0123%2A%26%25@localhost:3306/cqrs-es"
+      logging: true

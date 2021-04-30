@@ -2,12 +2,22 @@ import { EventStoreModule } from '@juicycleff/nestjs-event-store';
 import { Module } from '@nestjs/common';
 import { GraphQLFederationModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './user/model/user.model';
+import { config } from '@common/config';
+
+import { User } from './user/models/user.model';
 import { UserModule } from './user/user.module';
 
+// Customization
+const entities = [User];
+const module = UserModule;
+const moduleName = 'user';
+
+// Do not change
+const moduleConfig = config.services[moduleName];
+const eventStoreConfig = config.common.eventStore;
 const databaseUrl =
-  process.env.DATABASE_URL ||
-  'mysql://usr:User12345@localhost:3306/service_user';
+  process.env[`SVC_${moduleName.toUpperCase()}_DB_URL`] ||
+  moduleConfig.database.url;
 
 @Module({
   imports: [
@@ -17,13 +27,19 @@ const databaseUrl =
     EventStoreModule.register({
       type: 'event-store',
       tcpEndpoint: {
-        host: 'localhost',
-        port: 1113,
+        host: process.env.EVENT_STORE_HOST || eventStoreConfig.tcpEndpoint.host,
+        port:
+          parseInt(process.env.EVENT_STORE_PORT, 10) ||
+          eventStoreConfig.tcpEndpoint.port,
       },
       options: {
         defaultUserCredentials: {
-          username: 'admin',
-          password: 'changeit',
+          username:
+            process.env.EVENT_STORE_USERNAME ||
+            eventStoreConfig.credentials.username,
+          password:
+            process.env.EVENT_STORE_PASSWORD ||
+            eventStoreConfig.credentials.password,
         },
       },
     }),
@@ -31,11 +47,16 @@ const databaseUrl =
       type: 'mysql',
       url: databaseUrl,
       database: databaseUrl.split('/').pop(),
-      entities: [User],
+      entityPrefix:
+        process.env[`SVC_${moduleName.toUpperCase()}_DB_URL`] ||
+        moduleConfig.database.prefix,
+      entities,
       synchronize: true,
-      logging: true,
+      logging:
+        process.env[`SVC_${moduleName.toUpperCase()}_DB_LOGGING`] === 'true' ||
+        moduleConfig.database.logging,
     }),
-    UserModule,
+    module,
   ],
 })
 export class AppModule {}
