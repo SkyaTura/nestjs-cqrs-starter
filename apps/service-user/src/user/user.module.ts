@@ -5,23 +5,21 @@ import {
 } from '@juicycleff/nestjs-event-store';
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
-import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { ActivateUserHandler } from './cqrs/commands/handlers/activate-user.handler';
 import { CreateUserHandler } from './cqrs/commands/handlers/create-user.handler';
 import { CreateUserSaga } from './cqrs/sagas/create-user.saga';
-import { User } from './models/user.model';
+import { User, UserSchema } from './models/user.model';
 import { UserResolver } from './resolvers/user.resolver';
 import { UserService } from './services/user.service';
+import { UserRepository } from './repositories/user.repository';
+import { MongooseModule } from '@nestjs/mongoose';
 
 // Module
 const services = [UserService];
 const resolvers = [UserResolver];
 const commandHandlers = [CreateUserHandler, ActivateUserHandler];
 const sagas = [CreateUserSaga];
-
-// TypeOrm
-const entities = [User];
 
 // EventStore
 const featureStreamName = '$svc-user';
@@ -46,8 +44,14 @@ const eventHandlers = {
       subscriptions,
       eventHandlers,
     }),
-    TypeOrmModule.forFeature(entities),
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
   ],
-  providers: [...services, ...resolvers, ...commandHandlers, ...sagas],
+  providers: [
+    ...services,
+    ...resolvers,
+    ...commandHandlers,
+    ...sagas,
+    UserRepository,
+  ],
 })
 export class UserModule {}

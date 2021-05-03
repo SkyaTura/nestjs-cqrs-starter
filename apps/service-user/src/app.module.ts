@@ -6,6 +6,7 @@ import { config } from '@common/config';
 
 import { User } from './user/models/user.model';
 import { UserModule } from './user/user.module';
+import { MongooseModule } from '@nestjs/mongoose';
 
 // Customization
 const entities = [User];
@@ -23,6 +24,15 @@ const databaseUrl =
   imports: [
     GraphQLFederationModule.forRoot({
       autoSchemaFile: true,
+    }),
+    MongooseModule.forRoot('mongodb://localhost/admin', {
+      dbName: 'microservices-nestjs',
+      user: 'root',
+      pass: 'example',
+      useNewUrlParser: true,
+      useCreateIndex: true,
+      useFindAndModify: false,
+      useUnifiedTopology: true,
     }),
     EventStoreModule.register({
       type: 'event-store',
@@ -42,19 +52,6 @@ const databaseUrl =
             eventStoreConfig.credentials.password,
         },
       },
-    }),
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      url: databaseUrl,
-      database: databaseUrl.split('/').pop(),
-      entityPrefix:
-        process.env[`SVC_${moduleName.toUpperCase()}_DB_URL`] ||
-        moduleConfig.database.prefix,
-      entities,
-      synchronize: true,
-      logging:
-        process.env[`SVC_${moduleName.toUpperCase()}_DB_LOGGING`] === 'true' ||
-        moduleConfig.database.logging,
     }),
     module,
   ],

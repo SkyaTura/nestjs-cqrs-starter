@@ -2,25 +2,26 @@ import { UserActivatedEvent, UserCreatedEvent } from '@common/events';
 import { IUser, UserStatus } from '@common/interfaces';
 import { AggregateRoot } from '@nestjs/cqrs';
 import { Directive, Field, ID, ObjectType } from '@nestjs/graphql';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
 
 @Directive(`@key(fields: "id")`)
 @ObjectType()
-@Entity('USER')
+@Schema({ timestamps: true })
 export class User extends AggregateRoot implements IUser {
   @Field(() => ID)
-  @PrimaryGeneratedColumn('uuid')
+  @Prop()
   id: string;
 
   @Field()
-  @Column()
+  @Prop()
   name: string;
 
   @Field({ nullable: true })
-  @Column({ nullable: true })
+  @Prop()
   nickName?: string;
 
-  @Column({ type: 'enum', enum: UserStatus, default: UserStatus.PENDING })
+  @Prop({ type: 'String', enum: UserStatus, default: UserStatus.PENDING })
   status: UserStatus;
 
   createUser() {
@@ -31,3 +32,7 @@ export class User extends AggregateRoot implements IUser {
     this.apply(new UserActivatedEvent(this));
   }
 }
+
+export type UserDocument = User & Document;
+
+export const UserSchema = SchemaFactory.createForClass(User);
