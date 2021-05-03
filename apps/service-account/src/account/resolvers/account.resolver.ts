@@ -2,6 +2,7 @@ import {
   Args,
   Mutation,
   Parent,
+  Query,
   ResolveProperty,
   Resolver,
 } from '@nestjs/graphql';
@@ -13,6 +14,11 @@ import { AccountService } from '../services/account.service';
 @Resolver(() => Account)
 export class AccountResolver {
   constructor(private readonly accountService: AccountService) {}
+
+  @Query(() => [Account])
+  accounts() {
+    return this.accountService.find();
+  }
 
   @Mutation(() => Account)
   async createAccount(@Args('input') input: CreateAccountInput) {

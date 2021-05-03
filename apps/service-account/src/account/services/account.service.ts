@@ -16,6 +16,10 @@ export class AccountService {
     return this.accountRepository.save(account);
   }
 
+  find() {
+    return this.accountRepository.find();
+  }
+
   findByUserId(userId: string) {
     return this.accountRepository.find({ where: { userId } });
   }
